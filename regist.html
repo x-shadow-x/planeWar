@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="jQueryUI/jquery-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="jQueryUI/jquery-ui.min.css">
+
+	<link type="text/css" rel="stylesheet" href="formValidator/style/validator.css"></link>
+	<script src="formValidator/formValidator-4.0.1.min.js" type="text/javascript" charset="UTF-8"></script>
+	<script src="formValidator/formValidatorRegex.js" type="text/javascript" charset="UTF-8"></script>
+
+	<script src="jQueryForm/jquery.form.js" type="text/javascript" charset="UTF-8"></script>
+
+	<title>用户注册页面</title>
+</head>
+<body>
+	<div id="registDialog">
+		<!--下面这个div专门用于显示用户名错误信息-->
+		<div id="nameError"></div>
+		<form id="userRegiest" action="UserRegiset.php" method="post">
+			<table>
+				<tr>
+					<td>用户名：</td>
+					<td>
+						<input type="text" id="userName" name="userName" />
+					</td>
+					<td>
+						<div id="userNameTip"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>密码：</td>
+					<td>
+						<input type="password" id="pwd" name="pwd" />
+					</td>
+					<td>
+						<div id="pwdTip"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>确认密码：</td>
+					<td>
+						<input type="password" id="rePassword" name="rePassword" />
+					</td>
+					<td>
+						<div id="rePasswordTip"></div>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</body>
+<script>
+	//利用jQueryUI美化窗口
+	$(function(){
+		$("#registDialog").dialog({
+			autoOpen:true,
+			title:"用户注册",
+			modal:true,
+			width:510,
+			buttons:[//下面一个大括号就对应生成一个button~目前只需要一个注册按钮~于是就写一个咯
+				{
+					text:"注册",
+					click:function(){
+						//点击注册按钮时需要完成的功能
+						$("#userRegiest").ajaxSubmit({
+							url:"regist.php",
+							type:"POST",
+							//serialize函数即序列化~将表单元素的值自动拼接成字符串以便提交~
+							//如果遇到多选框在使用serialize函数时就要注意手动构建多选框所选值得字符串
+							data:$("#userRegiest").serialize(),//要提交给服务器的表单元素的值
+							success:function(responseText,textStatus,xhr,$form){
+								//responseText就是响应数据
+								//如果注册成功则显示登录页面
+
+							}
+						});
+					}
+				}
+			]
+		});
+		//利用formVaildator控件完成表单验证
+		$.formValidator.initConfig({
+			vaildatorGroup:"1",
+		});
+		//1、验证用户名
+		$("#userName").formValidator({
+			vaildatorGroup:"1",
+			onShow:"请输入用户名称",
+			onFocus:"由6~18位的英文和数字组成",
+			onCorrect:"用户名合法"
+		}).inputValidator({
+			min:6,
+			max:18,
+			onError:"用户名输入错误"
+		}).ajaxValidator({
+			url:"checkUserName.php",//服务器端的php页面
+			type:"POST",//一般带请求参数的请求方式都用post~这样比较安全
+
+			//下面是请求参数~请求参数是key/value形式的~这里只写value~那么key默认就是当前元素的name值
+			data:$("#userName").val(),
+			//回调函数中的data参数是请求成功后服务器返回的数据信息
+			success:function(data,textStatus){
+				//请求成功~根据服务器返回的信息做相应的处理
+				if(data == "error"){
+					//显示错误信息可以使用下面注释起来的代码
+					//还可以使用return false/true并在onError处写错误提示信息
+					//$("#nameError").html("当前用户名已经存在");
+					return false;
+				}
+				return true;
+			},
+			onError:"当前用户名已经存在",
+			error:function(XMLHttpRequest, textStatus, errorThrown){
+				//请求失败
+			}
+		});
+		//2、验证密码
+		$("#pwd").formValidator({
+			vaildatorGroup:"1",
+			onShow:"请输入密码",
+			onFocus:"由6~18位的英文和数字组成",
+		}).inputValidator({
+			min:6,
+			max:18,
+			onError:"密码输入错误"
+		});
+		//3、验证确认密码
+		$("#rePassword").formValidator({
+			vaildatorGroup:"1",
+			onShow:"请输入确认密码",
+			onFocus:"由6~18位的英文和数字组成",
+		}).inputValidator({
+			min:6,
+			max:18,
+			onError:"确认密码输入错误"
+		}).compareValidator({
+			desID:"pwd",
+			operateor:"=",
+			onError:"2次密码不一致,请确认"
+		});
+	});
+	
+	
+</script>
+</html>

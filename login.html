@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="jQueryUI/jquery-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="jQueryUI/jquery-ui.min.css">
+
+	<link type="text/css" rel="stylesheet" href="formValidator/style/validator.css"></link>
+	<script src="formValidator/formValidator-4.0.1.min.js" type="text/javascript" charset="UTF-8"></script>
+	<script src="formValidator/formValidatorRegex.js" type="text/javascript" charset="UTF-8"></script>
+
+	<script src="jQueryForm/jquery.form.js" type="text/javascript" charset="UTF-8"></script>
+	<title>用户登录页面</title>
+</head>
+<body>
+	<div id="loginDialog">
+		<form id="loginForm" action="#" method="POST">
+			<table>
+				<tr>
+					<td>用户名：</td>
+					<td>
+						<input type="text" id="loginName" name="loginName" />
+					</td>
+					<td>
+						<div id="loginNameTip"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>密码：</td>
+					<td>
+						<input type="password" id="loginPwd" name="loginPwd" />
+					</td>
+					<td>
+						<div id="loginPwdTip"></div>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</body>
+<script>
+	$(function(){
+		$("#loginDialog").dialog({
+			title:"用户登录",
+			autoOpen:true,
+			modal:true,
+			width:450,
+			buttons:[
+				{
+					text:"登录",
+					click:function(){
+						//点击登录按钮后做的操作
+						$("#loginForm").ajaxForm({
+							url:"login.php",
+							type:"POST",
+							data:$("#loginForm").serialize(),
+							success:function(responseText,textStatus,xhr,$form){
+								//responseText就是响应数据
+								//登录成功就显示开始游戏界面
+
+							}
+						});
+					}
+				}
+			]
+		});
+		//表单验证
+		$.formValidator.initConfig({
+			vaildatorGroup:"1"
+		});
+		$("#loginName").formValidator({
+			vaildatorGroup:"1",
+			onShow:"请输入用户名",
+			onFocus:"请输入用户名",
+		}).inputValidator({
+			min:1,
+			onError:"用户名不能为空"
+		});
+		$("#loginPwd").formValidator({
+			vaildatorGroup:"1",
+			onShow:"请输入密码",
+			onFocus:"请输入密码",
+		}).inputValidator({
+			min:1,
+			onError:"密码不能为空"
+		});
+	});
+</script>
+</html>

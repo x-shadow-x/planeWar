@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+
+	<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="jQueryUI/jquery-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="jQueryUI/jquery-ui.min.css">
+
+	<link type="text/css" rel="stylesheet" href="formValidator/style/validator.css"></link>
+	<script src="formValidator/formValidator-4.0.1.min.js" type="text/javascript" charset="UTF-8"></script>
+	<script src="formValidator/formValidatorRegex.js" type="text/javascript" charset="UTF-8"></script>
+
+	<script src="jQueryForm/jquery.form.js" type="text/javascript" charset="UTF-8"></script>
+
+	<!--type = "text/css"书写格式在谷歌浏览器里text和css的位置没有要求~但在火狐浏览器中一定要用text/css的书写格式才能将外部文件链接进来-->
+	<link rel = "stylesheet" href = "./css/style.css" type = "text/css" />
+
+	<title>飞机大战</title>
+
+</head>
+<body>
+
+	<div id="registDialog">
+		<form id="userRegiest" action="UserRegiset.php" method="post">
+			<table>
+				<tr>
+					<td>用户名：</td>
+					<td>
+						<input type="text" id="userName" name="userName" />
+					</td>
+					<td>
+						<div id="userNameTip"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>密码：</td>
+					<td>
+						<input type="password" id="pwd" name="pwd" />
+					</td>
+					<td>
+						<div id="pwdTip"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>确认密码：</td>
+					<td>
+						<input type="password" id="rePassword" name="rePassword" />
+					</td>
+					<td>
+						<div id="rePasswordTip"></div>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+
+	<div id="loginDialog">
+		<form id="loginForm" action="#" method="POST">
+			<table>
+				<tr>
+					<td>用户名：</td>
+					<td>
+						<input type="text" id="loginName" name="loginName" />
+					</td>
+					<td>
+						<div id="loginNameTip"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>密码：</td>
+					<td>
+						<input type="password" id="loginPwd" name="loginPwd" />
+					</td>
+					<td>
+						<div id="loginPwdTip"></div>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<a href="javascript:clickRegest();">注册</a>
+					</td>
+					<td></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+
+	<div id = "stage">
+		<canvas id="canvas" width = "480" height = "650">
+			您的浏览器不支持canvas！
+		</canvas>
+	</div>
+	<script src="js/animation.js"></script>
+	<!--<audio src="./music/bg.mp3" autoplay loop>您的浏览器不支持 audio 标签！</audio>-->
+	<script>
+	function clickRegest(){
+		jQuery("#loginDialog").dialog("close");
+		jQuery("#registDialog").dialog("open");
+	}
+	jQuery(function(){
+
+		//利用jQueryUI美化窗口
+		jQuery("#registDialog").dialog({
+			autoOpen:false,
+			title:"用户注册",
+			modal:true,
+			width:510,
+			buttons:[//下面一个大括号就对应生成一个button~目前只需要一个注册按钮~于是就写一个咯
+				{
+					text:"注册",
+					click:function(){
+						//点击注册按钮时需要完成的功能
+						jQuery("#userRegiest").ajaxSubmit({
+							url:"regist.php",
+							type:"POST",
+							//serialize函数即序列化~将表单元素的值自动拼接成字符串以便提交~
+							//如果遇到多选框在使用serialize函数时就要注意手动构建多选框所选值得字符串
+							data:jQuery("#userRegiest").serialize(),//要提交给服务器的表单元素的值
+							success:function(responseText,textStatus,xhr,$form){
+								//responseText就是响应数据
+								//如果注册成功则显示登录页面
+								jQuery("#registDialog").dialog("close");
+								jQuery("#loginDialog").dialog("open");
+		
+							}
+						});
+					}
+				}
+			]
+		});
+
+		jQuery("#loginDialog").dialog({
+			title:"用户登录",
+			autoOpen:true,
+			modal:true,
+			width:450,
+			buttons:[
+				{
+					text:"登录",
+					click:function(){
+						//点击登录按钮后做的操作
+						jQuery("#loginForm").ajaxSubmit({
+							url:"login.php",
+							type:"POST",
+							data:jQuery("#loginForm").serialize(),
+							success:function(responseText,textStatus,xhr,$form){
+								//responseText就是响应数据
+								//登录成功就显示开始游戏界面
+								if(responseText == "success"){
+									jQuery("#loginDialog").dialog("close");
+								}
+							}
+						});
+					}
+				}
+			]
+		});
+
+		//利用formVaildator控件完成表单验证
+		jQuery.formValidator.initConfig({
+			vaildatorGroup:"2",
+		});
+		//1、验证用户名
+		jQuery("#userName").formValidator({
+			vaildatorGroup:"2",
+			onShow:"请输入用户名称",
+			onFocus:"由6~18位的英文和数字组成",
+			onCorrect:"用户名合法"
+		}).inputValidator({
+			min:6,
+			max:18,
+			onError:"用户名输入错误"
+		}).ajaxValidator({
+			url:"checkUserName.php",//服务器端的php页面
+			type:"POST",//一般带请求参数的请求方式都用post~这样比较安全
+
+			//下面是请求参数~请求参数是key/value形式的~这里只写value~那么key默认就是当前元素的name值
+			data:jQuery("#userName").val(),
+			//回调函数中的data参数是请求成功后服务器返回的数据信息
+			success:function(data,textStatus){
+				//请求成功~根据服务器返回的信息做相应的处理
+				alert(data);
+				if(data == "error"){
+					return false;
+				}
+				return true;
+			},
+			onError:"当前用户名已经存在",
+			error:function(XMLHttpRequest, textStatus, errorThrown){
+				//请求失败
+			}
+		});
+		//2、验证密码
+		jQuery("#pwd").formValidator({
+			vaildatorGroup:"2",
+			onShow:"请输入密码",
+			onFocus:"由6~18位的英文和数字组成",
+		}).inputValidator({
+			min:6,
+			max:18,
+			onError:"密码输入错误"
+		});
+		//3、验证确认密码
+		jQuery("#rePassword").formValidator({
+			vaildatorGroup:"2",
+			onShow:"请输入确认密码",
+			onFocus:"由6~18位的英文和数字组成",
+		}).inputValidator({
+			min:6,
+			max:18,
+			onError:"确认密码输入错误"
+		}).compareValidator({
+			desID:"pwd",
+			operateor:"=",
+			onError:"2次密码不一致,请确认"
+		});
+
+		//表单验证
+		jQuery.formValidator.initConfig({
+			vaildatorGroup:"1"
+		});
+		jQuery("#loginName").formValidator({
+			vaildatorGroup:"1",
+			onShow:"请输入用户名",
+			onFocus:"请输入用户名",
+		}).inputValidator({
+			min:1,
+			onError:"用户名不能为空"
+		});
+		jQuery("#loginPwd").formValidator({
+			vaildatorGroup:"1",
+			onShow:"请输入密码",
+			onFocus:"请输入密码",
+		}).inputValidator({
+			min:1,
+			onError:"密码不能为空"
+		});
+	});
+</script>
+	
+</body>
+</html>
